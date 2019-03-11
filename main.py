@@ -89,8 +89,12 @@ def valid_moves(current_position, maze, maze_size):
     return valid_moves_list
 
 
+def back_it_up(current_position, maze, maze_size):
+    """We need a way to undo."""
+    pass
+
+
 def process_move(move, current_position, options):
-    # rsp = ""
     if move == 'n' and move in options:
         current_position['y'] -= 1
     elif move == 's' and move in options:
@@ -99,10 +103,6 @@ def process_move(move, current_position, options):
         current_position['x'] += 1
     elif move == 'w' and move in options:
         current_position['x'] -= 1
-    # else:
-    #     rsp = "That was an illegal move, try again"
-
-    # return rsp
 
 
 def clear_screen():
@@ -112,20 +112,21 @@ def clear_screen():
 
 def main():
     clear_screen()
+    default_levels = dict(d="8 4", easy="4 4", moderate="10 10", hard="20 20", expert="30 30")
+
     while True:
-        print("'d' for default, and 'q' to exit")
-        val = input("Give us two inputs between 4 and 20 for the height and width of the maze:")
+        print("'q' to exit")
+        print("Pick a default difficulty: ({})".format("|".join(default_levels.keys())))
+        val = input("Or give us two inputs between 4 and 30 for the height and width of the maze:")
         if val == "q":
             print("Have a nice day!")
             exit(0)
-        elif val == "d":
-            txt_for_player = "Default set: 8 4"
-            val = "8 4"
+        elif val in default_levels:
+            val = default_levels[val]
         try:
             x, y = [int(x) for x in val.split()]
-            if 3 >= x or x >= 20 or 3 >= y or y >= 20:
+            if 3 >= x or x >= 31 or 3 >= y or y >= 31:
                 raise ValueError
-            txt_for_player = "Making you a maze with: {}".format(val)
             break
         except ValueError:
             print("that was not right... " + val)
@@ -138,8 +139,9 @@ def main():
     run = 0
     turns = 0
     while find_finished(current_position, end_location, turns):
+        txt_for_player = "Running {} spaces!".format(run)
+        show_me(current_position, maze, end_location, txt_for_player)  # Show the maze
 
-        show_me(current_position, maze, end_location, "Runing {} spaces!".format(run))  # Show the maze
         options = valid_moves(current_position, maze, maze_size)
         if len(options) == 0:
             print("Game over. Better luck next time.")
@@ -149,7 +151,7 @@ def main():
             move = options[0]
         else:
             while True:
-                move = input("Pick a direction ({}): ".format("-".join(options)))
+                move = input("'q' to quit. Pick a direction ({}): ".format("-".join(options)))
                 if move not in options and move != "q":
                     show_me(current_position, maze, end_location, "That is not a valid option.")
                 else:
