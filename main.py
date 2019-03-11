@@ -1,9 +1,8 @@
 from random import shuffle, randrange
 import os
 
-maze_size = {'x': 12, 'y': 8}
 
-def make_maze(w=maze_size['x'], h=maze_size['y']):
+def make_maze(w, h):
     vis = [[0] * w + [1] for _ in range(h)] + [[1] * (w + 1)]
     ver = [["|  "] * w + ['|'] for _ in range(h)] + [[]]
     hor = [["+--"] * w + ['+'] for _ in range(h + 1)]
@@ -64,14 +63,12 @@ def find_finished(current_position, end_location, turns):
         return True
 
 
-def valid_moves(current_position, maze):
+def valid_moves(current_position, maze, maze_size):
     """Function to check your current location and give a list of valid moves"""
+
     valid_moves_list = []
-    open_spaces = {
-        'n': ['+  ', '|  ', '   ']
-        , 's': ['+  ', '|  ', '   ']
-        , 'e': ['   ', ' • ']
-        , 'w': ['   ', '|  ', ' • ', '|• ']}
+    open_spaces = dict(n=['+  ', '|  ', '   '], s=['+  ', '|  ', '   '], e=['   ', ' • '],
+                       w=['   ', '|  ', ' • ', '|• '])
 
     if current_position['y'] != 1 \
             and maze[current_position['y'] * 2 - 2][current_position['x'] - 1] in open_spaces['n'] \
@@ -93,7 +90,7 @@ def valid_moves(current_position, maze):
 
 
 def process_move(move, current_position, options):
-    rsp = ""
+    # rsp = ""
     if move == 'n' and move in options:
         current_position['y'] -= 1
     elif move == 's' and move in options:
@@ -102,10 +99,10 @@ def process_move(move, current_position, options):
         current_position['x'] += 1
     elif move == 'w' and move in options:
         current_position['x'] -= 1
-    else:
-        rsp = "That was an illegal move, try again"
+    # else:
+    #     rsp = "That was an illegal move, try again"
 
-    return rsp
+    # return rsp
 
 
 def clear_screen():
@@ -114,29 +111,57 @@ def clear_screen():
 
 
 def main():
+    clear_screen()
+    while True:
+        print("'d' for default, and 'q' to exit")
+        val = input("Give us two inputs between 4 and 20 for the height and width of the maze:")
+        if val == "q":
+            print("Have a nice day!")
+            exit(0)
+        elif val == "d":
+            txt_for_player = "Default set: 8 4"
+            val = "8 4"
+        try:
+            x, y = [int(x) for x in val.split()]
+            if 3 >= x or x >= 20 or 3 >= y or y >= 20:
+                raise ValueError
+            txt_for_player = "Making you a maze with: {}".format(val)
+            break
+        except ValueError:
+            print("that was not right... " + val)
+
+    maze_size = {'x': x, 'y': y}
     current_position = {'x': 1, 'y': 1}
     end_location = generate_x_mark(maze_size)
 
-    maze = make_maze()
-    txt_for_player = ""
+    maze = make_maze(maze_size['x'], maze_size['y'])
+    run = 0
     turns = 0
     while find_finished(current_position, end_location, turns):
 
-        show_me(current_position, maze, end_location, txt_for_player)  # Show the maze
-        options = valid_moves(current_position, maze)
+        show_me(current_position, maze, end_location, "Runing {} spaces!".format(run))  # Show the maze
+        options = valid_moves(current_position, maze, maze_size)
         if len(options) == 0:
             print("Game over. Better luck next time.")
             break
         elif len(options) == 1 and turns != 0:
+            run += 1
             move = options[0]
         else:
-            move = input("Pick a direction ('n', 's', 'e', 'w'): ")
+            while True:
+                move = input("Pick a direction ({}): ".format("-".join(options)))
+                if move not in options and move != "q":
+                    show_me(current_position, maze, end_location, "That is not a valid option.")
+                else:
+                    break
             turns += 1
+            run = 0
+
         if move == 'q':
             print("Thanks for playing!")
             break
         else:
-            txt_for_player = process_move(move, current_position, options)
+            process_move(move, current_position, options)
 
 
 if __name__ == '__main__':
